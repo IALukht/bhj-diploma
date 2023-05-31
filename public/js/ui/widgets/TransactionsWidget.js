@@ -3,7 +3,6 @@
  * открытие всплывающих окон для
  * создания нового дохода или расхода
  * */
-
 class TransactionsWidget {
   /**
    * Устанавливает полученный элемент
@@ -12,11 +11,12 @@ class TransactionsWidget {
    * необходимо выкинуть ошибку.
    * */
   constructor( element ) {
-    if (!element) {
-			throw new Error("Элемент не задан");
-		}
-		this.element = element;
-		this.registerEvents();
+    if ( !element ) {
+      throw new Error( 'Элемент не существует' );
+    }
+    this.element = element;
+
+    this.registerEvents();
   }
   /**
    * Регистрирует обработчики нажатия на
@@ -25,17 +25,13 @@ class TransactionsWidget {
    * экземпляра окна
    * */
   registerEvents() {
-    const addMoney = this.element.querySelector(".create-income-button");
-		const removeMoney = this.element.querySelector(".create-expense-button");
+    const createIncomeButton = this.element.querySelector( '.create-income-button' ),
+        createExpenseButton = this.element.querySelector( '.create-expense-button' ),
 
-		addMoney.addEventListener("click", function () {
-			const incomeWindow = App.getModal("newIncome");
-			incomeWindow.open();
-		});
+        incomeModal = new Modal( document.querySelector( '#modal-new-income' )),
+        expenseModal = new Modal( document.querySelector( '#modal-new-expense' ));
 
-		removeMoney.addEventListener("click", function () {
-			const expenceWindow = App.getModal("newExpense");
-			expenceWindow.open();
-		})
+    createIncomeButton.addEventListener( 'click', () => incomeModal.open());
+    createExpenseButton.addEventListener( 'click', () => expenseModal.open());
   }
 }

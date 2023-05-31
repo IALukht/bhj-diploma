@@ -3,54 +3,61 @@
  * на сервер.
  * */
 const createRequest = (options = {}) => {
-    let xhr = new XMLHttpRequest;
-    xhr.responseType = 'json';
+    const f = function () {},
+        {
+            method = 'GET',
+            headers = {},
+            success = f,
+            error = f,
+            callback = f,
+            responseType,
+            async = true,
+            data = {}
+        } = options,
+        xhr = new XMLHttpRequest;
 
-    const formData = new FormData();
-    let queryParams = '';
-    if (options.data) {
-        if (options.method === 'GET') {
-            queryParams = '?' + Object.entries(options.data).map 
-            (([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
-            ).join('&');
-        } else {
-            Object.entries(options.data).forEach (v => formData.append(...v));
+    let { url } = options;
+
+    let requestData;
+    if (responseType) {
+        xhr.responseType = responseType;
+    }
+    xhr.onload = function() {
+        success.call( this, xhr.response );
+        callback.call( this, null, xhr.response );
+    };
+    xhr.onerror = function() {
+        const err = new Error( 'Request Error' );
+        error.call( this, err );
+        callback.call( this, err );
+    };
+
+    xhr.withCredentials = true;
+
+    if ( method === 'GET' ) {
+        const urlParams = Object.entries( data )
+            .map(([ key, value ]) => `${key}=${value}` )
+            .join( '&' );
+        if ( urlParams ) {
+            url += '?' + urlParams;
         }
     }
+    else {
+        requestData = Object.entries( data )
+            .reduce(( target, [ key, value ]) => {
+                target.append( key, value );
+                return target;
+            }, new FormData );
+    }
+    try {
+        xhr.open( method, url, async );
+        xhr.send( requestData );
+    }
+    catch ( err ) {
+        error.call( this, err );
+        callback.call( this, err );
+        return xhr;
+    }
 
-
-    xhr.onreadystatechange = () => {
-        let err = null;
-        let resp = null;
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-          if (xhr.status === 200) {
-            if (xhr?.response?.success) {
-                resp = xhr.response;
-            } else {
-                err = xhr.response;
-            }
-          } else {
-            err = new Error ('...');
-          }
-        }
-        if (options.callback){
-            options.callback(err, resp);
-        }
-        
-    };
-
-    xhr.onload = () => {
-        let err = null;
-        let response = xhr.response; 
-        options.callback(err, response);
-    };
-
-    xhr.onerror = () => {
-        alert(`Ошибка соединения ${xhr.status}: ${xhr.statusText}`);
-    };
-
-
-    xhr.open(options.method, options.url + queryParams, true);
-    xhr.send(formData);
     return xhr;
 };

@@ -3,21 +3,24 @@
  * создания нового счёта
  * */
 class CreateAccountForm extends AsyncForm {
-  /**
-   * Создаёт счёт с помощью Account.create и закрывает
-   * окно в случае успеха, а также вызывает App.update()
-   * и сбрасывает форму
-   * */
-  onSubmit(data) {
-    Account.create(data, (err, resp) => {
-		if (resp) {
-			this.element.reset();
-			App.getModal('createAccount').close();
-			App.update();
+	/**
+	 * Создаёт счёт с помощью Account.create и закрывает
+	 * окно в случае успеха, а также вызывает App.update()
+	 * и сбрасывает форму
+	 * */
+	onSubmit( options ) {
+	  Account.create( options.data, ( err, response ) => {
+		if ( !response.success ) {
+		  return
 		}
-		else {
-			console.log("Ошибка при создании счета");
-		}
-	});
+		App.getWidget( 'accounts' ).update();
+		this.element.reset();
+  
+		const modal = App.getModal( 'createAccount' );
+		modal.close();
+  
+		App.update();
+	  });
 	}
-}
+  }
+  

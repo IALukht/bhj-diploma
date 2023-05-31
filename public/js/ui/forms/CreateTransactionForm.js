@@ -7,8 +7,8 @@ class CreateTransactionForm extends AsyncForm {
    * Вызывает родительский конструктор и
    * метод renderAccountsList
    * */
-  constructor(element) {
-    super(element);
+  constructor( element ) {
+    super( element );
     this.renderAccountsList();
   }
 
@@ -17,18 +17,17 @@ class CreateTransactionForm extends AsyncForm {
    * Обновляет в форме всплывающего окна выпадающий список
    * */
   renderAccountsList() {
-    const accountsSelectList = this.element.querySelector(".accounts-select");
+    const accoutSelect = this.element.querySelector('.accounts-select'),
+        renderItem = item => {console.log(item); accoutSelect.innerHTML += `<option value="${item.id}">${item.name}</option>`;}
 
-		Account.list(User.current(), (err, response) => {
-			if (response && response.success) {
-				accountsSelectList.innerHTML = "";
-				response.data.forEach((item) => {
-					accountsSelectList.innerHTML += `<option value="${item.id}">${item.name}</option>`;
-				})
-			} else {
-				console.log("Ошибка при получении списка счетов");
-			}
-		});
+    Account.list(User.current(), (err, response) => {
+      if (response && response.data) {
+        accoutSelect.innerHTML = '';
+        response.data.forEach( renderItem );
+      } else {
+        return;
+      }
+    });
   }
 
   /**
@@ -37,16 +36,20 @@ class CreateTransactionForm extends AsyncForm {
    * вызывает App.update(), сбрасывает форму и закрывает окно,
    * в котором находится форма
    * */
-  onSubmit(data) {
-    Transaction.create(data, (err, response) => {
-			if (response && response.success) {
-				this.element.reset();
-				const type = data.type;
-				const modalName = 'new' + type[0].toUpperCase() + type.substr(1);
-				let transactionModal = App.getModal(modalName);
-				transactionModal.close();
-				App.update();
-			}
-		});
+  onSubmit( options ) {
+    Transaction.create( options.data, ( err, response ) => {
+      if ( !response.success ) {
+        return
+      }
+      App.getWidget( 'accounts' ).update();
+      this.element.reset();
+
+      const { type } = options.data,
+          modalName = 'new' + type[ 0 ].toUpperCase() + type.substr( 1 ),
+          modal = App.getModal( modalName );
+      modal.close();
+
+      App.update();
+    });
   }
 }
